@@ -1,0 +1,27 @@
+{
+  "name": "rivue-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rivue — All-in-one SEO, competitor intelligence, PR, and social growth platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:ext": "npm run dev --workspace=apps/extension",
+    "build:web": "npm run build --workspace=apps/web",
+    "build:ext": "npm run build --workspace=apps/extension",
+    "test:all": "node --test tests/**/*.test.js packages/*/tests/**/*.test.js apps/*/tests/**/*.test.js"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.4",
+    "typescript": "^5.7.3"
+  },
+  "packageManager": "npm@11.6.2"
+}
