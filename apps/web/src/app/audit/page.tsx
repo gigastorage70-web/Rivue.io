@@ -3,313 +3,290 @@
 import React, { useState } from 'react';
 import {
   Activity,
+  AlertOctagon,
   AlertTriangle,
-  CheckCircle2,
-  XCircle,
   Info,
+  CheckCircle2,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
   RefreshCw,
   Zap,
   Globe,
-  Sliders,
-  ExternalLink,
+  SlidersHorizontal,
 } from 'lucide-react';
-import {
-  MetricCard,
-  ProgressRing,
-  Card,
-  Badge,
-  Button,
-  Tabs,
-  InfoTooltip,
-} from '@rivue/ui';
-import { SEED_SITE_AUDIT } from '@rivue/db';
-import { calculateSiteHealthScore } from '@rivue/scoring';
+import { Card, Badge, Button, ProgressRing, Table, InfoTooltip, MetricCard } from '@rivue/ui';
+import { useRivue } from '../../lib/state';
 
 export default function SiteAuditPage() {
-  const [targetUrl, setTargetUrl] = useState('https://rivue.io');
-  const [audit, setAudit] = useState(SEED_SITE_AUDIT);
-  const [isCrawling, setIsCrawling] = useState(false);
-  const [activeSeverityFilter, setActiveSeverityFilter] = useState('all');
+  const { audit, runLiveAudit, isAuditing, targetDomain, setTargetDomain } = useRivue();
+  const [crawlUrlInput, setCrawlUrlInput] = useState(`https://${targetDomain}`);
+  const [expandedIssue, setExpandedIssue] = useState<string | null>(audit.issues[0]?.id || null);
+  const [activeSeverityTab, setActiveSeverityTab] = useState<'all' | 'error' | 'warning' | 'notice'>('all');
 
-  const handleStartAudit = async () => {
-    setIsCrawling(true);
-    setTimeout(() => {
-      const newScore = calculateSiteHealthScore({
-        totalPages: 148,
-        errorsCount: 4,
-        warningsCount: 16,
-        noticesCount: 28,
-        coreWebVitalsPassRate: 0.92,
-      });
-      setAudit({
-        ...audit,
-        id: `audit_${Date.now()}`,
-        targetUrl,
-        healthScore: newScore,
-        startedAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-      });
-      setIsCrawling(false);
-    }, 1200);
+  const handleStartAudit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!crawlUrlInput.trim()) return;
+    const clean = crawlUrlInput.trim();
+    const domain = clean.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+    setTargetDomain(domain);
+    await runLiveAudit(clean);
   };
 
   const filteredIssues = audit.issues.filter((issue) => {
-    if (activeSeverityFilter === 'all') return true;
-    return issue.severity === activeSeverityFilter;
+    if (activeSeverityTab === 'all') return true;
+    return issue.severity === activeSeverityTab;
   });
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      {/* Header & Crawler Launcher */}
-      <div className="space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="cyan" size="sm">Technical Site Audit</Badge>
-              <span className="text-xs text-slate-400">Playwright Crawler + Lighthouse CWV Engine</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-              Technical Audit & Core Web Vitals
-            </h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Comprehensive crawlability check, broken link detection, canonical validation, and speed benchmarks.
-            </p>
+      {/* Top Banner / Crawler Trigger */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/40 border border-slate-800 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="emerald" size="sm">Site Audit Engine</Badge>
+            <span className="text-xs text-slate-400 font-mono">Real-Time HTML & Vitals Analyzer</span>
           </div>
-
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Globe className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                className="pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:border-cyan-500 focus:outline-none w-56 font-mono"
-              />
-            </div>
-            <Button
-              onClick={handleStartAudit}
-              isLoading={isCrawling}
-              leftIcon={<RefreshCw className="w-4 h-4" />}
-            >
-              {isCrawling ? 'Crawling...' : 'Rerun Audit'}
-            </Button>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Technical Audit: <span className="font-mono text-cyan-400">{targetDomain}</span>
+          </h1>
+          <p className="text-xs text-slate-300 mt-1 max-w-2xl">
+            Live DOM crawling, 4xx/5xx defect detection, Core Web Vitals profiling, and on-page optimization.
+          </p>
         </div>
+
+        {/* Crawl URL Input Form */}
+        <form onSubmit={handleStartAudit} className="flex gap-2 w-full md:w-auto">
+          <input
+            type="text"
+            value={crawlUrlInput}
+            onChange={(e) => setCrawlUrlInput(e.target.value)}
+            placeholder="Enter website URL to audit..."
+            className="px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:border-cyan-500 focus:outline-none font-mono min-w-[260px]"
+          />
+          <Button type="submit" isLoading={isAuditing} leftIcon={<RefreshCw className="w-4 h-4" />}>
+            {isAuditing ? 'Auditing...' : 'Start Audit'}
+          </Button>
+        </form>
       </div>
 
-      {/* Top Health Overview Card */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/30 border border-slate-800 shadow-2xl">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          {/* Health Gauge */}
-          <div className="md:col-span-4 flex items-center justify-center sm:justify-start gap-5 border-b md:border-b-0 md:border-r border-slate-800/80 pb-6 md:pb-0 md:pr-6">
-            <ProgressRing
-              value={audit.healthScore}
-              size={135}
-              strokeWidth={12}
-              label="HEALTH SCORE"
-              sublabel="GOOD STANDING"
-            />
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-white uppercase tracking-wide">
-                  Site Health
-                </span>
-                <InfoTooltip term="site_health" />
-              </div>
-              <p className="text-xs text-slate-400 leading-snug">
-                148 pages crawled. 284 checks passed cleanly.
-              </p>
-              <div className="pt-1">
-                <Badge variant="emerald" size="sm">+7 pts vs last crawl</Badge>
-              </div>
-            </div>
-          </div>
-
-          {/* Severity Breakdown Buckets */}
-          <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-rose-950/30 border border-rose-800/50">
-              <div className="flex items-center justify-between text-rose-400 mb-1">
-                <span className="text-xs font-semibold uppercase">Errors</span>
-                <XCircle className="w-4 h-4" />
-              </div>
-              <div className="text-2xl font-extrabold font-mono text-white">
-                {audit.errorsCount}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">Critical blockers</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-800/50">
-              <div className="flex items-center justify-between text-amber-400 mb-1">
-                <span className="text-xs font-semibold uppercase">Warnings</span>
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-              <div className="text-2xl font-extrabold font-mono text-white">
-                {audit.warningsCount}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">Needs attention</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-blue-950/30 border border-blue-800/50">
-              <div className="flex items-center justify-between text-blue-400 mb-1">
-                <span className="text-xs font-semibold uppercase">Notices</span>
-                <Info className="w-4 h-4" />
-              </div>
-              <div className="text-2xl font-extrabold font-mono text-white">
-                {audit.noticesCount}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">Optimizations</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-800/50">
-              <div className="flex items-center justify-between text-emerald-400 mb-1">
-                <span className="text-xs font-semibold uppercase">Passed</span>
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-              <div className="text-2xl font-extrabold font-mono text-white">
-                {audit.passedChecksCount}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">100% healthy</p>
-            </div>
-          </div>
-        </div>
+      {/* Top Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <MetricCard
+          title="Site Health Score"
+          termKey="site_health"
+          value={`${audit.healthScore}/100`}
+          subtitle={audit.healthScore >= 80 ? 'Good standing' : 'Action required'}
+          trend={{ value: 4, direction: 'up', label: 'vs last scan' }}
+          icon={<Activity className="w-5 h-5 text-emerald-400" />}
+          variant="emerald"
+        />
+        <MetricCard
+          title="Critical Errors"
+          termKey="site_health"
+          value={audit.errorsCount}
+          subtitle="4xx/5xx & missing meta tags"
+          icon={<AlertOctagon className="w-5 h-5 text-rose-400" />}
+          variant="rose"
+        />
+        <MetricCard
+          title="Warnings"
+          termKey="site_health"
+          value={audit.warningsCount}
+          subtitle="Missing alt tags & titles"
+          icon={<AlertTriangle className="w-5 h-5 text-amber-400" />}
+          variant="amber"
+        />
+        <MetricCard
+          title="Passed Checks"
+          termKey="site_health"
+          value={audit.passedChecksCount}
+          subtitle="Compliant technical signals"
+          icon={<CheckCircle2 className="w-5 h-5 text-cyan-400" />}
+          variant="cyan"
+        />
       </div>
 
-      {/* Core Web Vitals Suite */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-white">Core Web Vitals & Speed Pulse</h2>
-            <InfoTooltip term="core_web_vitals" />
-          </div>
-          <Badge variant="emerald" size="sm">All Vitals Passed</Badge>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-slate-400">LCP (Loading)</span>
+      {/* Core Web Vitals Meters */}
+      <Card
+        title="Core Web Vitals & Real-World User Experience"
+        termKey="core_web_vitals"
+        subtitle="Google ranking signals based on 2026 performance benchmarks"
+      >
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-center">
+            <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-400 uppercase">
+              <span>LCP (Largest Contentful)</span>
               <InfoTooltip term="core_web_vitals" />
             </div>
-            <div className="text-xl font-bold font-mono text-emerald-400">
+            <div className="text-xl font-black font-mono text-emerald-400 mt-2">
               {audit.coreWebVitals.lcp.value}s
             </div>
-            <span className="text-[10px] text-slate-500">Benchmark: &lt; 2.5s</span>
+            <span className="text-[10px] uppercase font-bold text-emerald-400">Pass (&lt; 2.5s)</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-slate-400">INP (Response)</span>
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-center">
+            <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-400 uppercase">
+              <span>INP (Interaction to Next)</span>
               <InfoTooltip term="core_web_vitals" />
             </div>
-            <div className="text-xl font-bold font-mono text-emerald-400">
+            <div className="text-xl font-black font-mono text-emerald-400 mt-2">
               {audit.coreWebVitals.inp.value}ms
             </div>
-            <span className="text-[10px] text-slate-500">Benchmark: &lt; 200ms</span>
+            <span className="text-[10px] uppercase font-bold text-emerald-400">Pass (&lt; 200ms)</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-slate-400">CLS (Stability)</span>
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-center">
+            <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-400 uppercase">
+              <span>CLS (Layout Shift)</span>
               <InfoTooltip term="core_web_vitals" />
             </div>
-            <div className="text-xl font-bold font-mono text-emerald-400">
+            <div className="text-xl font-black font-mono text-emerald-400 mt-2">
               {audit.coreWebVitals.cls.value}
             </div>
-            <span className="text-[10px] text-slate-500">Benchmark: &lt; 0.1</span>
+            <span className="text-[10px] uppercase font-bold text-emerald-400">Pass (&lt; 0.1)</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-slate-400">TTFB (Server)</span>
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-center">
+            <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-400 uppercase">
+              <span>TTFB (Server Response)</span>
               <InfoTooltip term="core_web_vitals" />
             </div>
-            <div className="text-xl font-bold font-mono text-emerald-400">
+            <div className="text-xl font-black font-mono text-cyan-400 mt-2">
               {audit.coreWebVitals.ttfb.value}ms
             </div>
-            <span className="text-[10px] text-slate-500">Benchmark: &lt; 800ms</span>
+            <span className="text-[10px] uppercase font-bold text-cyan-400">Fast (&lt; 800ms)</span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-slate-400">FCP (Paint)</span>
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-center">
+            <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-400 uppercase">
+              <span>FCP (First Contentful)</span>
               <InfoTooltip term="core_web_vitals" />
             </div>
-            <div className="text-xl font-bold font-mono text-emerald-400">
+            <div className="text-xl font-black font-mono text-emerald-400 mt-2">
               {audit.coreWebVitals.fcp.value}s
             </div>
-            <span className="text-[10px] text-slate-500">Benchmark: &lt; 1.8s</span>
+            <span className="text-[10px] uppercase font-bold text-emerald-400">Pass (&lt; 1.8s)</span>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Issues Drill-down Section */}
+      {/* Issues Breakdown & Resolution Section */}
       <Card
-        title="Detected Audit Issues & Fix Guidance"
-        subtitle="Ranked by severity and crawlability impact"
+        title="Detected Issues & Step-by-Step Fix Guides"
+        termKey="site_health"
+        subtitle="Ranked by defect severity and search engine impact"
         headerAction={
-          <Tabs
-            tabs={[
-              { id: 'all', label: 'All Issues', count: audit.issues.length },
-              { id: 'error', label: 'Errors', count: audit.errorsCount },
-              { id: 'warning', label: 'Warnings', count: audit.warningsCount },
-              { id: 'notice', label: 'Notices', count: audit.noticesCount },
-            ]}
-            activeTab={activeSeverityFilter}
-            onChange={setActiveSeverityFilter}
-          />
+          <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            {(['all', 'error', 'warning', 'notice'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveSeverityTab(tab)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${
+                  activeSeverityTab === tab
+                    ? 'bg-cyan-500 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         }
       >
-        <div className="space-y-4">
-          {filteredIssues.map((issue) => (
-            <div
-              key={issue.id}
-              className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 transition-all space-y-3"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <Badge
-                    variant={
-                      issue.severity === 'error'
-                        ? 'rose'
-                        : issue.severity === 'warning'
-                        ? 'amber'
-                        : 'slate'
-                    }
-                    size="sm"
-                  >
-                    {issue.severity.toUpperCase()}
-                  </Badge>
-                  <h3 className="text-sm font-bold text-white">{issue.title}</h3>
-                </div>
-                <span className="text-xs font-mono text-cyan-400">
-                  {issue.affectedUrlsCount} URLs affected
-                </span>
-              </div>
-
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {issue.description}
-              </p>
-
-              {/* Fix Guidance Box */}
-              <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs space-y-1">
-                <div className="flex items-center gap-1.5 text-cyan-400 font-semibold">
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>How to resolve:</span>
-                </div>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
-                  {issue.howToFix}
-                </p>
-                <div className="pt-1.5 flex items-center gap-2 flex-wrap text-[10px] text-slate-400 font-mono">
-                  <span>Sample URL:</span>
-                  {issue.sampleUrls.map((url, i) => (
-                    <span key={i} className="bg-slate-800 px-2 py-0.5 rounded text-cyan-300">
-                      {url}
-                    </span>
-                  ))}
-                </div>
-              </div>
+        <div className="space-y-3">
+          {filteredIssues.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 text-xs">
+              No issues detected for this severity category!
             </div>
-          ))}
+          ) : (
+            filteredIssues.map((issue) => {
+              const isExpanded = expandedIssue === issue.id;
+              const badgeVariant = issue.severity === 'error' ? 'rose' : issue.severity === 'warning' ? 'amber' : 'cyan';
+              const Icon = issue.severity === 'error' ? AlertOctagon : issue.severity === 'warning' ? AlertTriangle : Info;
+
+              return (
+                <div
+                  key={issue.id}
+                  className="rounded-2xl border border-slate-800/80 bg-slate-950/60 overflow-hidden transition-all"
+                >
+                  <div
+                    onClick={() => setExpandedIssue(isExpanded ? null : issue.id)}
+                    className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-900/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className={`p-2 rounded-xl bg-slate-900 border ${issue.severity === 'error' ? 'border-rose-500/40 text-rose-400' : issue.severity === 'warning' ? 'border-amber-500/40 text-amber-400' : 'border-cyan-500/40 text-cyan-400'}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xs font-bold text-white">{issue.title}</h3>
+                          <Badge variant={badgeVariant} size="sm">{issue.severity.toUpperCase()}</Badge>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-0.5">{issue.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono font-bold text-slate-300">
+                        {issue.affectedUrlsCount} {issue.affectedUrlsCount === 1 ? 'URL' : 'URLs'}
+                      </span>
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4 text-slate-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                      )}
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="p-4 border-t border-slate-800/80 bg-slate-900/30 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 block mb-1">
+                            Search Impact
+                          </span>
+                          <p className="text-xs text-slate-300">{issue.impact}</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block mb-1">
+                            How to Fix
+                          </span>
+                          <p className="text-xs text-slate-300">{issue.howToFix}</p>
+                        </div>
+                      </div>
+
+                      {issue.sampleUrls && issue.sampleUrls.length > 0 && (
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                            Affected Sample URLs
+                          </span>
+                          <div className="space-y-1">
+                            {issue.sampleUrls.map((url, i) => (
+                              <div
+                                key={i}
+                                className="px-3 py-2 rounded-lg bg-slate-950 border border-slate-800/80 font-mono text-[11px] text-cyan-300 flex items-center justify-between"
+                              >
+                                <span>{url}</span>
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-slate-500 hover:text-cyan-400 transition-colors"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       </Card>
     </div>

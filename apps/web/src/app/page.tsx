@@ -18,8 +18,11 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { MetricCard, ProgressRing, Card, Badge, Button, InfoTooltip } from '@rivue/ui';
+import { useRivue } from '../lib/state';
 
 export default function UnifiedDashboardPage() {
+  const { targetDomain, audit, isAuditing, runLiveAudit } = useRivue();
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Top Banner / Headline */}
@@ -32,7 +35,7 @@ export default function UnifiedDashboardPage() {
               <span className="text-xs text-slate-400">Single Pane of Glass Overview</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Target Site: <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-mono">rivue.io</span>
+              Target Site: <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-mono">{targetDomain}</span>
             </h1>
             <p className="text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
               Consolidated SEO health, organic rank momentum, backlink acquisition velocity, and digital PR outreach.
@@ -43,9 +46,14 @@ export default function UnifiedDashboardPage() {
             <Link href="/keywords">
               <Button leftIcon={<Search className="w-4 h-4" />}>Explore Keywords</Button>
             </Link>
-            <Link href="/audit">
-              <Button variant="outline" leftIcon={<Activity className="w-4 h-4" />}>Run Deep Audit</Button>
-            </Link>
+            <Button
+              variant="outline"
+              onClick={() => runLiveAudit(`https://${targetDomain}`)}
+              isLoading={isAuditing}
+              leftIcon={<Activity className="w-4 h-4" />}
+            >
+              Run Live Audit
+            </Button>
           </div>
         </div>
       </div>
@@ -55,18 +63,18 @@ export default function UnifiedDashboardPage() {
         <MetricCard
           title="Site Health Score"
           termKey="site_health"
-          value="88/100"
-          subtitle="4 critical errors, 18 warnings"
-          trend={{ value: 7, direction: 'up', label: 'vs last crawl' }}
+          value={`${audit.healthScore}/100`}
+          subtitle={`${audit.errorsCount} critical errors, ${audit.warningsCount} warnings`}
+          trend={{ value: 6, direction: 'up', label: 'vs previous' }}
           icon={<Activity className="w-5 h-5 text-emerald-400" />}
           variant="emerald"
         />
         <MetricCard
           title="Domain Rating (DR)"
           termKey="domain_rating"
-          value="64"
-          subtitle="Top 8% in SaaS niche"
-          trend={{ value: 3.2, direction: 'up', label: 'last 30d' }}
+          value={targetDomain.includes('zenso') ? '58' : targetDomain.includes('rivue') ? '64' : '72'}
+          subtitle="Authority ranking in niche"
+          trend={{ value: 3.4, direction: 'up', label: 'last 30d' }}
           icon={<ShieldCheck className="w-5 h-5 text-cyan-400" />}
           variant="cyan"
         />
@@ -95,13 +103,19 @@ export default function UnifiedDashboardPage() {
         {/* Left Column: Health & Vitals */}
         <div className="lg:col-span-5 space-y-6">
           <Card
-            title="Technical SEO & Performance"
+            title={`Technical Health: ${targetDomain}`}
             termKey="core_web_vitals"
             subtitle="Real-time crawler and Core Web Vitals pulse"
           >
             <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
               <div className="text-center">
-                <ProgressRing value={88} size={130} strokeWidth={11} label="HEALTH" sublabel="GRADE: GOOD" />
+                <ProgressRing
+                  value={audit.healthScore}
+                  size={130}
+                  strokeWidth={11}
+                  label="HEALTH"
+                  sublabel={audit.healthScore >= 80 ? 'GRADE: GOOD' : 'GRADE: FAIR'}
+                />
               </div>
               <div className="space-y-3 w-full sm:w-auto">
                 <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-4">
@@ -109,27 +123,35 @@ export default function UnifiedDashboardPage() {
                     <span className="text-xs text-slate-300 font-semibold">LCP Speed</span>
                     <InfoTooltip term="core_web_vitals" />
                   </div>
-                  <span className="text-xs font-mono font-bold text-emerald-400">1.8s (Good)</span>
+                  <span className="text-xs font-mono font-bold text-emerald-400">
+                    {audit.coreWebVitals.lcp.value}s (Good)
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-slate-300 font-semibold">INP Interactivity</span>
                     <InfoTooltip term="core_web_vitals" />
                   </div>
-                  <span className="text-xs font-mono font-bold text-emerald-400">92ms (Good)</span>
+                  <span className="text-xs font-mono font-bold text-emerald-400">
+                    {audit.coreWebVitals.inp.value}ms (Good)
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-slate-300 font-semibold">CLS Layout Shift</span>
                     <InfoTooltip term="core_web_vitals" />
                   </div>
-                  <span className="text-xs font-mono font-bold text-emerald-400">0.04 (Good)</span>
+                  <span className="text-xs font-mono font-bold text-emerald-400">
+                    {audit.coreWebVitals.cls.value} (Good)
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="border-t border-slate-800/80 pt-4 mt-2 flex items-center justify-between">
-              <span className="text-xs text-slate-400">148 pages audited successfully</span>
+              <span className="text-xs text-slate-400">
+                {audit.crawledPagesCount} pages audited successfully
+              </span>
               <Link href="/audit" className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
                 View Full Audit <ArrowRight className="w-3.5 h-3.5" />
               </Link>

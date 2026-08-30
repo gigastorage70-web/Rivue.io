@@ -1,149 +1,266 @@
 import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
-  Activity,
-  ShieldCheck,
+  Maximize2,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
   ExternalLink,
   ChevronRight,
-  AlertTriangle,
-  CheckCircle2,
-  Maximize2,
-  Globe,
+  RefreshCw,
+  Zap,
 } from 'lucide-react';
+import { LivePageSignals } from '../content/index';
 
 export const PopupApp: React.FC = () => {
-  const [currentUrl, setCurrentUrl] = useState('https://rivue.io');
-  const [score, setScore] = useState(88);
-  const [dr, setDr] = useState(64);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<LivePageSignals>({
+    url: 'https://thezensodigital.com',
+    domain: 'thezensodigital.com',
+    title: 'AI-Driven Digital Marketing Agency | The Zenso Digital',
+    titleLength: 53,
+    titleRating: 'good',
+    titleMessage: '53 characters (Optimal)',
+    metaDescription: 'AI-Driven performance marketing, SEO, and paid growth services for scaling brands.',
+    metaDescriptionLength: 82,
+    metaRating: 'warn',
+    metaMessage: '82 characters. Expand to 140+ chars for better CTR.',
+    canonicalUrl: 'https://thezensodigital.com/',
+    canonicalRating: 'good',
+    canonicalMessage: 'Valid canonical tag present',
+    h1Count: 1,
+    h1Rating: 'good',
+    h1Message: '1 Main H1 found',
+    headings: [
+      { tag: 'h1', text: 'AI-Driven Growth Engine for Modern Brands' },
+      { tag: 'h2', text: 'Our Performance Marketing Services' },
+    ],
+    wordCount: 840,
+    wordCountRating: 'good',
+    imagesTotal: 14,
+    imagesMissingAlt: 3,
+    imagesRating: 'warn',
+    imagesMessage: '3 images missing alt text',
+    structuredDataPresent: true,
+    schemaTypes: ['Organization', 'WebSite'],
+    healthScore: 82,
+    domainRatingEstimate: 58,
+    criticalIssues: ['3 images missing alt tags for SEO and accessibility.'],
+    recommendations: ['Expand meta description to 140+ characters.', 'Add BreadcrumbList schema.'],
+  });
 
-  useEffect(() => {
-    if (typeof chrome !== 'undefined' && chrome.tabs) {
+  const fetchLiveTabSignals = () => {
+    setLoading(true);
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]?.url) {
-          setCurrentUrl(tabs[0].url);
+        const activeTab = tabs[0];
+        if (activeTab && activeTab.id) {
+          chrome.tabs.sendMessage(activeTab.id, { action: 'GET_PAGE_SIGNALS' }, (response: LivePageSignals) => {
+            if (response && response.url) {
+              setData(response);
+            } else if (activeTab.url) {
+              // Parse URL directly if content script not responding
+              const hostname = new URL(activeTab.url).hostname.replace(/^www\./, '');
+              setData((prev) => ({
+                ...prev,
+                url: activeTab.url || prev.url,
+                domain: hostname,
+                title: activeTab.title || prev.title,
+                titleLength: activeTab.title ? activeTab.title.length : prev.titleLength,
+              }));
+            }
+            setLoading(false);
+          });
+        } else {
+          setLoading(false);
         }
       });
+    } else {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchLiveTabSignals();
   }, []);
 
   const handleOpenSidePanel = () => {
-    if (typeof chrome !== 'undefined' && chrome.runtime) {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
       chrome.runtime.sendMessage({ action: 'OPEN_SIDEPANEL' });
       window.close();
     }
   };
 
   const handleOpenDashboard = () => {
-    if (typeof chrome !== 'undefined' && chrome.tabs) {
-      chrome.tabs.create({ url: 'http://localhost:3000' });
+    const targetUrl = `http://localhost:3000/audit?url=${encodeURIComponent(data.url)}`;
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) {
+      chrome.tabs.create({ url: targetUrl });
     } else {
-      window.open('http://localhost:3000', '_blank');
+      window.open(targetUrl, '_blank');
     }
   };
 
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'color:#10b981;';
+    if (score >= 60) return 'color:#f59e0b;';
+    return 'color:#ef4444;';
+  };
+
   return (
-    <div className="p-4 space-y-4 select-none">
+    <div className="ext-container">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-md shadow-cyan-500/30">
-            <Sparkles className="w-4 h-4 text-white" />
+      <div className="ext-header">
+        <div className="ext-brand">
+          <div className="ext-logo-badge">
+            <Sparkles size={16} />
           </div>
           <div>
-            <h1 className="text-sm font-extrabold text-white tracking-tight">
-              RIVUE QUICK PULSE
-            </h1>
-            <p className="text-[10px] text-slate-400 font-mono truncate max-w-[200px]">
-              {currentUrl}
-            </p>
+            <div className="ext-title">RIVUE QUICK PULSE</div>
+            <div className="ext-url-chip" title={data.url}>{data.domain}</div>
           </div>
         </div>
 
-        <button
-          onClick={handleOpenSidePanel}
-          title="Open Deep Side Panel"
-          className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-cyan-300 transition-colors"
-        >
-          <Maximize2 className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Instant Health & DR Card */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-cyan-950/40 border border-cyan-500/30 flex items-center justify-around shadow-xl">
-        <div className="text-center">
-          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-            RIVUE HEALTH
-          </span>
-          <span className="text-3xl font-extrabold font-mono text-emerald-400">
-            {score}
-          </span>
-          <span className="text-[10px] text-emerald-400/80 font-bold block">
-            GOOD
-          </span>
-        </div>
-
-        <div className="h-10 w-px bg-slate-800" />
-
-        <div className="text-center">
-          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-            DOMAIN RATING
-          </span>
-          <span className="text-3xl font-extrabold font-mono text-cyan-400">
-            {dr}
-          </span>
-          <span className="text-[10px] text-cyan-400/80 font-bold block">
-            TOP 8%
-          </span>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <button
+            onClick={fetchLiveTabSignals}
+            title="Refresh Live Audit"
+            style={{
+              padding: '6px',
+              borderRadius: '8px',
+              background: '#1e293b',
+              border: '1px solid #334155',
+              color: '#94a3b8',
+              cursor: 'pointer',
+            }}
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button
+            onClick={handleOpenSidePanel}
+            title="Open Deep Side Panel"
+            style={{
+              padding: '6px',
+              borderRadius: '8px',
+              background: '#1e293b',
+              border: '1px solid #334155',
+              color: '#22d3ee',
+              cursor: 'pointer',
+            }}
+          >
+            <Maximize2 size={14} />
+          </button>
         </div>
       </div>
 
-      {/* Top 3 Quick Findings */}
-      <div className="space-y-2">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-          Key On-Page Findings
-        </span>
-
-        <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="text-slate-200">Title Tag: 54 chars</span>
+      {/* Real Health & Authority Scores */}
+      <div className="ext-score-card">
+        <div className="ext-score-item">
+          <span className="ext-score-label">Rivue Health</span>
+          <div className="ext-score-value" style={{ color: data.healthScore >= 80 ? '#10b981' : data.healthScore >= 60 ? '#f59e0b' : '#ef4444' }}>
+            {data.healthScore}
           </div>
-          <span className="text-[10px] font-mono text-emerald-400">Optimal</span>
+          <span className="ext-score-grade" style={{ color: data.healthScore >= 80 ? '#10b981' : data.healthScore >= 60 ? '#f59e0b' : '#ef4444' }}>
+            {data.healthScore >= 80 ? 'Good' : data.healthScore >= 60 ? 'Fair' : 'Critical'}
+          </span>
         </div>
 
-        <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="text-slate-200">Canonical Tag Configured</span>
+        <div className="ext-divider-v" />
+
+        <div className="ext-score-item">
+          <span className="ext-score-label">Domain Rating</span>
+          <div className="ext-score-value cyan">
+            {data.domainRatingEstimate}
           </div>
-          <span className="text-[10px] font-mono text-emerald-400">Valid</span>
+          <span className="ext-score-grade" style={{ color: '#06b6d4' }}>
+            {data.domainRatingEstimate > 50 ? 'Top 15%' : 'Emerging'}
+          </span>
+        </div>
+      </div>
+
+      {/* Live On-Page Checks */}
+      <div className="ext-card">
+        <div className="ext-card-title">
+          <span>Live On-Page SEO Findings</span>
+          <span className="ext-badge info">{data.wordCount} words</span>
         </div>
 
-        <div className="p-2.5 rounded-xl bg-slate-950/80 border border-amber-800/40 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="text-slate-200">2 Images Missing Alt Text</span>
+        {/* Title Tag */}
+        <div className="ext-check-item">
+          <div className="ext-check-left">
+            {data.titleRating === 'good' ? (
+              <CheckCircle2 size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
+            ) : data.titleRating === 'warn' ? (
+              <AlertTriangle size={15} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+            ) : (
+              <XCircle size={15} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }} />
+            )}
+            <div>
+              <div className="ext-check-text">Title: {data.titleLength} chars</div>
+              <div className="ext-check-desc">{data.title ? `"${data.title.substring(0, 50)}..."` : 'No title found'}</div>
+            </div>
           </div>
-          <span className="text-[10px] font-mono text-amber-400">Warning</span>
+          <span className={`ext-badge ${data.titleRating}`}>{data.titleRating.toUpperCase()}</span>
+        </div>
+
+        {/* Meta Description */}
+        <div className="ext-check-item">
+          <div className="ext-check-left">
+            {data.metaRating === 'good' ? (
+              <CheckCircle2 size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
+            ) : (
+              <AlertTriangle size={15} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+            )}
+            <div>
+              <div className="ext-check-text">Meta Description: {data.metaDescriptionLength} chars</div>
+              <div className="ext-check-desc">{data.metaMessage}</div>
+            </div>
+          </div>
+          <span className={`ext-badge ${data.metaRating}`}>{data.metaRating.toUpperCase()}</span>
+        </div>
+
+        {/* Headings */}
+        <div className="ext-check-item">
+          <div className="ext-check-left">
+            {data.h1Rating === 'good' ? (
+              <CheckCircle2 size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
+            ) : (
+              <AlertTriangle size={15} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+            )}
+            <div>
+              <div className="ext-check-text">H1 Headings: {data.h1Count} found</div>
+              <div className="ext-check-desc">{data.h1Message}</div>
+            </div>
+          </div>
+          <span className={`ext-badge ${data.h1Rating}`}>{data.h1Rating.toUpperCase()}</span>
+        </div>
+
+        {/* Images Missing Alt */}
+        <div className="ext-check-item">
+          <div className="ext-check-left">
+            {data.imagesMissingAlt === 0 ? (
+              <CheckCircle2 size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
+            ) : (
+              <AlertTriangle size={15} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+            )}
+            <div>
+              <div className="ext-check-text">Images Alt Tags</div>
+              <div className="ext-check-desc">{data.imagesMessage}</div>
+            </div>
+          </div>
+          <span className={`ext-badge ${data.imagesRating}`}>{data.imagesRating.toUpperCase()}</span>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="space-y-2 pt-2 border-t border-slate-800">
-        <button
-          onClick={handleOpenSidePanel}
-          className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 hover:from-cyan-400 hover:to-blue-500 transition-all cursor-pointer"
-        >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' }}>
+        <button className="ext-btn-primary" onClick={handleOpenSidePanel}>
           <span>Open Full Side Panel Inspector</span>
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight size={15} />
         </button>
 
-        <button
-          onClick={handleOpenDashboard}
-          className="w-full py-2 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-        >
-          <span>Open Rivue Web Dashboard</span>
-          <ExternalLink className="w-3.5 h-3.5" />
+        <button className="ext-btn-secondary" onClick={handleOpenDashboard}>
+          <span>Open in Web Dashboard</span>
+          <ExternalLink size={14} />
         </button>
       </div>
     </div>

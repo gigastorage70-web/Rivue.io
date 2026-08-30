@@ -1,241 +1,313 @@
 import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
-  Activity,
+  RefreshCw,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  ExternalLink,
+  Code,
   Layers,
   Search,
   Users,
-  ShieldCheck,
-  CheckCircle2,
-  AlertTriangle,
-  ExternalLink,
-  ChevronRight,
-  RefreshCw,
-  FileText,
 } from 'lucide-react';
-import { InfoTooltip } from '@rivue/ui';
+import { LivePageSignals } from '../content/index';
 
 export const SidePanelApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'onpage' | 'headings' | 'keywords' | 'competitors'>('onpage');
-  const [pageUrl, setPageUrl] = useState('https://rivue.io');
-  const [pageTitle, setPageTitle] = useState('Rivue — All-in-One SEO, PR and Competitor Platform');
-  const [metaDescription, setMetaDescription] = useState('Consolidate Ahrefs, Semrush, and Mangools into a single Chrome extension and companion web app.');
-  const [wordCount, setWordCount] = useState(1480);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<LivePageSignals>({
+    url: 'https://thezensodigital.com',
+    domain: 'thezensodigital.com',
+    title: 'AI-Driven Digital Marketing Agency | The Zenso Digital',
+    titleLength: 53,
+    titleRating: 'good',
+    titleMessage: '53 characters (Ideal: 50–60 chars)',
+    metaDescription: 'AI-Driven performance marketing, SEO, and paid growth services for scaling brands.',
+    metaDescriptionLength: 82,
+    metaRating: 'warn',
+    metaMessage: '82 characters. Expand to 140+ chars for better CTR.',
+    canonicalUrl: 'https://thezensodigital.com/',
+    canonicalRating: 'good',
+    canonicalMessage: 'Valid canonical tag specified',
+    h1Count: 1,
+    h1Rating: 'good',
+    h1Message: '1 Main H1 tag found',
+    headings: [
+      { tag: 'h1', text: 'AI-Driven Growth Engine for Modern Brands' },
+      { tag: 'h2', text: 'Our Performance Marketing Services' },
+      { tag: 'h2', text: 'Case Studies & Client Results' },
+      { tag: 'h3', text: 'SEO & Search Engine Domination' },
+      { tag: 'h3', text: 'Paid Media & High-Velocity PPC' },
+    ],
+    wordCount: 840,
+    wordCountRating: 'good',
+    imagesTotal: 14,
+    imagesMissingAlt: 3,
+    imagesRating: 'warn',
+    imagesMessage: '3 images missing alt text',
+    structuredDataPresent: true,
+    schemaTypes: ['Organization', 'WebSite'],
+    healthScore: 82,
+    domainRatingEstimate: 58,
+    criticalIssues: ['3 images missing alt tags for SEO and accessibility.'],
+    recommendations: ['Expand meta description to 140+ characters.', 'Add BreadcrumbList schema.'],
+  });
 
-  useEffect(() => {
-    if (typeof chrome !== 'undefined' && chrome.tabs) {
+  const fetchLiveSignals = () => {
+    setLoading(true);
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]?.id) {
-          setPageUrl(tabs[0].url || 'https://rivue.io');
-          chrome.tabs.sendMessage(tabs[0].id, { action: 'GET_PAGE_SIGNALS' }, (response) => {
-            if (response) {
-              if (response.title) setPageTitle(response.title);
-              if (response.metaDescription) setMetaDescription(response.metaDescription);
-              if (response.wordCount) setWordCount(response.wordCount);
+        const activeTab = tabs[0];
+        if (activeTab && activeTab.id) {
+          chrome.tabs.sendMessage(activeTab.id, { action: 'GET_PAGE_SIGNALS' }, (response: LivePageSignals) => {
+            if (response && response.url) {
+              setData(response);
             }
+            setLoading(false);
           });
+        } else {
+          setLoading(false);
         }
       });
+    } else {
+      setLoading(false);
     }
-  }, []);
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 600);
   };
 
+  useEffect(() => {
+    fetchLiveSignals();
+  }, []);
+
   return (
-    <div className="p-4 space-y-5 bg-slate-950 min-h-screen text-slate-100 select-none">
+    <div className="ext-container" style={{ padding: '16px', gap: '14px' }}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-md shadow-cyan-500/30">
-            <Sparkles className="w-4 h-4 text-white" />
+      <div className="ext-header">
+        <div className="ext-brand">
+          <div className="ext-logo-badge">
+            <Sparkles size={16} />
           </div>
           <div>
-            <h1 className="text-sm font-extrabold text-white tracking-tight flex items-center gap-1.5">
-              RIVUE INSPECTOR
-              <span className="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                MV3
-              </span>
-            </h1>
-            <p className="text-[10px] text-slate-400 font-mono truncate max-w-[200px]">
-              {pageUrl}
-            </p>
+            <div className="ext-title">RIVUE SIDE PANEL</div>
+            <div className="ext-url-chip" title={data.url}>{data.domain}</div>
           </div>
         </div>
 
         <button
-          onClick={handleRefresh}
-          className={`p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer ${
-            isRefreshing ? 'animate-spin' : ''
-          }`}
+          onClick={fetchLiveSignals}
+          title="Refresh Analysis"
+          style={{
+            padding: '6px',
+            borderRadius: '8px',
+            background: '#1e293b',
+            border: '1px solid #334155',
+            color: '#94a3b8',
+            cursor: 'pointer',
+          }}
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="grid grid-cols-4 gap-1 p-1 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] font-semibold text-center">
+      <div className="ext-tabs-bar">
         <button
+          className={`ext-tab-btn ${activeTab === 'onpage' ? 'active' : ''}`}
           onClick={() => setActiveTab('onpage')}
-          className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-            activeTab === 'onpage'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
         >
           On-Page
         </button>
         <button
+          className={`ext-tab-btn ${activeTab === 'headings' ? 'active' : ''}`}
           onClick={() => setActiveTab('headings')}
-          className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-            activeTab === 'headings'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
         >
-          Headings
+          Headings ({data.headings.length})
         </button>
         <button
+          className={`ext-tab-btn ${activeTab === 'keywords' ? 'active' : ''}`}
           onClick={() => setActiveTab('keywords')}
-          className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-            activeTab === 'keywords'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
         >
           Keywords
         </button>
         <button
+          className={`ext-tab-btn ${activeTab === 'competitors' ? 'active' : ''}`}
           onClick={() => setActiveTab('competitors')}
-          className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-            activeTab === 'competitors'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
         >
-          Compare
+          Competitors
         </button>
       </div>
 
-      {/* Tab 1: On-Page Signals */}
+      {/* TAB 1: ON-PAGE SIGNALS */}
       {activeTab === 'onpage' && (
-        <div className="space-y-4">
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-slate-400">
-                Title Tag ({pageTitle.length} chars)
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Quick Metrics */}
+          <div className="ext-score-card">
+            <div className="ext-score-item">
+              <span className="ext-score-label">Health Score</span>
+              <div className="ext-score-value">{data.healthScore}</div>
+              <span className="ext-score-grade">{data.healthScore >= 80 ? 'Good' : 'Needs Work'}</span>
+            </div>
+            <div className="ext-divider-v" />
+            <div className="ext-score-item">
+              <span className="ext-score-label">Est. Domain Rating</span>
+              <div className="ext-score-value cyan">{data.domainRatingEstimate}</div>
+              <span className="ext-score-grade" style={{ color: '#06b6d4' }}>DR Rating</span>
+            </div>
+            <div className="ext-divider-v" />
+            <div className="ext-score-item">
+              <span className="ext-score-label">Word Count</span>
+              <div className="ext-score-value" style={{ color: '#f8fafc', fontSize: '20px' }}>{data.wordCount}</div>
+              <span className="ext-score-grade" style={{ color: '#94a3b8' }}>words</span>
+            </div>
+          </div>
+
+          {/* Detailed Elements */}
+          <div className="ext-card">
+            <div className="ext-card-title">
+              <span>Title & Meta Tags</span>
+              <span className="ext-badge info">{data.titleLength} chars</span>
+            </div>
+            <div style={{ fontSize: '11px', color: '#f8fafc', fontWeight: 600 }}>
+              "{data.title || 'No Title'}"
+            </div>
+            <div style={{ fontSize: '10px', color: '#94a3b8', borderTop: '1px solid #1e293b', paddingTop: '6px' }}>
+              <strong>Meta Description:</strong> {data.metaDescription || 'Missing meta description tag.'}
+            </div>
+          </div>
+
+          <div className="ext-card">
+            <div className="ext-card-title">
+              <span>Technical Signals</span>
+              <span className="ext-badge good">Valid</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+              <span style={{ color: '#94a3b8' }}>Canonical URL:</span>
+              <span style={{ color: '#f8fafc', fontFamily: 'monospace', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {data.canonicalUrl || 'Not specified'}
               </span>
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
             </div>
-            <p className="text-xs font-semibold text-white leading-snug">
-              {pageTitle}
-            </p>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-slate-400">
-                Meta Description ({metaDescription.length} chars)
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderTop: '1px solid #1e293b', paddingTop: '6px' }}>
+              <span style={{ color: '#94a3b8' }}>Structured Data:</span>
+              <span style={{ color: '#34d399', fontWeight: 700 }}>
+                {data.schemaTypes.length > 0 ? data.schemaTypes.join(', ') : 'None'}
               </span>
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
             </div>
-            <p className="text-xs text-slate-300 leading-snug">
-              {metaDescription}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-400">Word Count</span>
-              <p className="text-lg font-bold font-mono text-cyan-400 mt-0.5">{wordCount}</p>
-            </div>
-            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-400">Schema JSON-LD</span>
-              <p className="text-lg font-bold font-mono text-emerald-400 mt-0.5">SoftwareApp</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderTop: '1px solid #1e293b', paddingTop: '6px' }}>
+              <span style={{ color: '#94a3b8' }}>Missing Alt Images:</span>
+              <span style={{ color: data.imagesMissingAlt > 0 ? '#fbbf24' : '#34d399', fontWeight: 700 }}>
+                {data.imagesMissingAlt} of {data.imagesTotal} images
+              </span>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Tab 2: Headings Tree */}
-      {activeTab === 'headings' && (
-        <div className="space-y-2.5">
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/60 font-bold">
-              H1 Tag (1 found)
-            </span>
-            <p className="text-xs font-bold text-white pt-1">
-              All-in-One SEO, Competitor & Growth Platform
-            </p>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">
-              H2: Consolidate Your Growth Stack
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">
-              H2: Technical SEO Audits on Demand
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">
-              H2: Live Digital PR Outreach & Mentions
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 3: Keywords for Current Page */}
-      {activeTab === 'keywords' && (
-        <div className="space-y-3">
-          {[
-            { kw: 'seo chrome extension', vol: 18100, kd: 35, pos: '#1' },
-            { kw: 'competitor intelligence tool', vol: 12400, kd: 44, pos: '#2' },
-            { kw: 'digital pr crm software', vol: 6400, kd: 28, pos: '#4' },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs"
-            >
-              <div>
-                <span className="font-bold text-white block">{item.kw}</span>
-                <span className="text-[10px] text-slate-400">Vol: {item.vol.toLocaleString()} • KD: {item.kd}</span>
+          {/* Actionable Recommendations */}
+          <div className="ext-card" style={{ border: '1px solid rgba(245, 158, 11, 0.4)' }}>
+            <div className="ext-card-title" style={{ color: '#fbbf24' }}>
+              <span>Actionable Recommendations</span>
+            </div>
+            {data.recommendations.map((rec, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '11px', color: '#f8fafc' }}>
+                <span style={{ color: '#fbbf24' }}>•</span>
+                <span>{rec}</span>
               </div>
-              <span className="font-mono font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800/60">
-                {item.pos}
-              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: HEADINGS TREE */}
+      {activeTab === 'headings' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="ext-card-title">
+            <span>Heading Hierarchy Tree</span>
+            <span className="ext-badge info">{data.headings.length} tags</span>
+          </div>
+
+          {data.headings.length === 0 ? (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
+              No headings found on this page.
+            </div>
+          ) : (
+            data.headings.map((h, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '8px',
+                  background: h.tag === 'h1' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(15, 23, 42, 0.8)',
+                  border: h.tag === 'h1' ? '1px solid rgba(6, 182, 212, 0.4)' : '1px solid #334155',
+                  marginLeft: h.tag === 'h2' ? '12px' : h.tag === 'h3' ? '24px' : '0',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                  <span className={`ext-badge ${h.tag === 'h1' ? 'info' : 'slate'}`}>{h.tag.toUpperCase()}</span>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: '#f8fafc' }}>
+                    {h.text}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: KEYWORDS FOR THIS PAGE */}
+      {activeTab === 'keywords' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="ext-card-title">
+            <span>Live Keyword Opportunities</span>
+            <span className="ext-badge good">High Intent</span>
+          </div>
+
+          {[
+            { kw: `${data.domain} seo agency`, vol: 4800, kd: 32, pos: '#1' },
+            { kw: 'ai performance marketing', vol: 8900, kd: 44, pos: '#3' },
+            { kw: 'digital marketing roi', vol: 14200, kd: 52, pos: '#7' },
+          ].map((k, i) => (
+            <div key={i} className="ext-check-item">
+              <div className="ext-check-left">
+                <Search size={14} color="#06b6d4" style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div className="ext-check-text">{k.kw}</div>
+                  <div className="ext-check-desc">Vol: {k.vol.toLocaleString()} • KD: {k.kd}</div>
+                </div>
+              </div>
+              <span className="ext-badge info">{k.pos}</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* Tab 4: Competitor Quick Compare */}
+      {/* TAB 4: COMPETITORS COMPARE */}
       {activeTab === 'competitors' && (
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="ext-card-title">
+            <span>Niche Competitor Authority</span>
+          </div>
+
           {[
-            { domain: 'semrush.com', dr: 91, traffic: '14.2M', gap: '42 missing keywords' },
-            { domain: 'ahrefs.com', dr: 90, traffic: '11.8M', gap: '38 missing keywords' },
-            { domain: 'mangools.com', dr: 77, traffic: '890k', gap: '12 missing keywords' },
-          ].map((comp, i) => (
+            { name: data.domain, dr: data.domainRatingEstimate, traffic: '12.4k', isSelf: true },
+            { name: 'semrush.com', dr: 91, traffic: '14.2M', isSelf: false },
+            { name: 'ahrefs.com', dr: 90, traffic: '11.8M', isSelf: false },
+            { name: 'mangools.com', dr: 77, traffic: '890k', isSelf: false },
+          ].map((c, i) => (
             <div
               key={i}
-              className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1 text-xs"
+              className="ext-check-item"
+              style={{
+                background: c.isSelf ? 'rgba(6, 182, 212, 0.15)' : 'rgba(15, 23, 42, 0.8)',
+                border: c.isSelf ? '1px solid rgba(6, 182, 212, 0.5)' : '1px solid #334155',
+              }}
             >
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-white">{comp.domain}</span>
-                <span className="font-mono text-cyan-400 font-bold">DR {comp.dr}</span>
+              <div className="ext-check-left">
+                <div>
+                  <div className="ext-check-text" style={{ color: c.isSelf ? '#22d3ee' : '#f8fafc' }}>
+                    {c.name} {c.isSelf && '(Current Site)'}
+                  </div>
+                  <div className="ext-check-desc">Est. Traffic: {c.traffic}/mo</div>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-[11px] text-slate-400">
-                <span>Traffic: <strong className="text-slate-200">{comp.traffic}</strong></span>
-                <span className="text-amber-400 font-medium">{comp.gap}</span>
-              </div>
+              <span className="ext-badge info">DR {c.dr}</span>
             </div>
           ))}
         </div>

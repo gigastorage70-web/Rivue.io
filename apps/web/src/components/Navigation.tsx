@@ -16,7 +16,9 @@ import {
   Sliders,
   Sparkles,
   Zap,
+  User,
 } from 'lucide-react';
+import { useRivue } from '../lib/state';
 
 const NAV_ITEMS = [
   { name: 'Unified Overview', href: '/', icon: LayoutDashboard, badge: 'Live' },
@@ -28,11 +30,14 @@ const NAV_ITEMS = [
   { name: 'Listings & Reviews', href: '/listings', icon: MapPin },
   { name: 'Social Scheduling', href: '/social', icon: Share2 },
   { name: 'Digital PR CRM', href: '/pr-crm', icon: Send },
-  { name: 'Credits & Settings', href: '/settings', icon: Sliders },
+  { name: 'Admin & Settings', href: '/settings', icon: Sliders },
 ];
 
 export const Navigation: React.FC = () => {
   const pathname = usePathname();
+  const { quota, profile } = useRivue();
+
+  const creditPercentage = Math.min(100, Math.round((quota.creditsRemaining / quota.monthlyAllowance) * 100));
 
   return (
     <aside className="w-64 border-r border-slate-800/80 bg-slate-950/70 backdrop-blur-xl flex flex-col justify-between shrink-0 h-screen sticky top-0">
@@ -96,30 +101,42 @@ export const Navigation: React.FC = () => {
 
       {/* Quota & User Footer */}
       <div className="p-4 border-t border-slate-800/80 bg-slate-950/40 space-y-3">
-        <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+        <Link
+          href="/settings"
+          className="block p-3 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/40 transition-all group"
+        >
           <div className="flex items-center justify-between text-[11px] font-medium text-slate-300 mb-1.5">
-            <span className="flex items-center gap-1 text-cyan-400">
+            <span className="flex items-center gap-1 text-cyan-400 group-hover:text-cyan-300">
               <Zap className="w-3.5 h-3.5" /> API Credits
             </span>
-            <span className="font-mono font-bold text-white">34,250 / 50k</span>
+            <span className="font-mono font-bold text-white">
+              {quota.creditsRemaining.toLocaleString()} / {(quota.monthlyAllowance / 1000).toFixed(0)}k
+            </span>
           </div>
           <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-1.5 rounded-full"
-              style={{ width: '68.5%' }}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-1.5 rounded-full transition-all duration-500"
+              style={{ width: `${creditPercentage}%` }}
             />
           </div>
-        </div>
+        </Link>
 
-        <div className="flex items-center gap-2.5 px-1">
-          <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-white">
-            RA
+        <Link
+          href="/settings"
+          className="flex items-center gap-2.5 px-1 group cursor-pointer"
+        >
+          <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-white group-hover:border-cyan-500 transition-colors">
+            {profile.name.split(' ').map((n) => n[0]).join('')}
           </div>
           <div className="text-xs overflow-hidden">
-            <p className="font-semibold text-slate-200 truncate">Rivue Pro Org</p>
-            <p className="text-[10px] text-slate-400 truncate">active_workspace</p>
+            <p className="font-semibold text-slate-200 group-hover:text-white truncate">
+              {profile.name}
+            </p>
+            <p className="text-[10px] text-slate-400 truncate">
+              {profile.organization} ({profile.role})
+            </p>
           </div>
-        </div>
+        </Link>
       </div>
     </aside>
   );
