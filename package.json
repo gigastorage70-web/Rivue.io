@@ -10,17 +10,16 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "test": "turbo run test",
+    "test": "npx tsx --test tests/*.test.ts",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "dev:web": "npm run dev --workspace=apps/web",
-    "dev:ext": "npm run dev --workspace=apps/extension",
-    "build:web": "npm run build --workspace=apps/web",
-    "build:ext": "npm run build --workspace=apps/extension",
-    "test:all": "node --test tests/**/*.test.js packages/*/tests/**/*.test.js apps/*/tests/**/*.test.js"
+    "dev:web": "turbo run dev --filter=rivue-web",
+    "dev:ext": "turbo run dev --filter=rivue-extension",
+    "build:web": "turbo run build --filter=rivue-web...",
+    "build:ext": "turbo run build --filter=rivue-extension..."
   },
   "devDependencies": {
-    "turbo": "^2.4.4",
+    "turbo": "^2.10.12",
     "typescript": "^5.7.3"
   },
   "packageManager": "npm@11.6.2"

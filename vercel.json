@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build --workspace=apps/web",
+  "buildCommand": "npx turbo run build --filter=rivue-web...",
   "outputDirectory": "apps/web/.next",
   "framework": "nextjs"
 }
