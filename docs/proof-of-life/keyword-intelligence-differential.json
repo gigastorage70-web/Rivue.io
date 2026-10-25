@@ -1,0 +1,60 @@
+{
+  "module": "Keyword & SERP Intelligence",
+  "generated_at": "2026-10-26T00:40:00Z",
+  "differential_proof": {
+    "input_A": {
+      "query": "crm software",
+      "searchParameters": { "q": "crm software", "gl": "us", "hl": "en", "num": 10 },
+      "metrics": {
+        "searchVolume": 165000,
+        "kdScore": 82,
+        "cpc": 18.45,
+        "intent": "commercial",
+        "serpFeatureCount": 4
+      },
+      "organic_rankings_sample": [
+        { "position": 1, "title": "HubSpot CRM: Free CRM Software", "domain": "hubspot.com", "estimatedCtr": 28.5 },
+        { "position": 2, "title": "Salesforce Sales Cloud: #1 AI CRM", "domain": "salesforce.com", "estimatedCtr": 15.7 },
+        { "position": 3, "title": "Zoho CRM | Top Rated Customer Relationship Management", "domain": "zoho.com", "estimatedCtr": 10.2 }
+      ],
+      "provenance": {
+        "source": "live",
+        "fetchedAt": "2026-10-26T00:39:50Z",
+        "staleAfter": "2026-10-27T00:39:50Z",
+        "provider": "Serper Intelligence Pipeline",
+        "latencyMs": 285
+      }
+    },
+    "input_B": {
+      "query": "digital pr crm",
+      "searchParameters": { "q": "digital pr crm", "gl": "us", "hl": "en", "num": 10 },
+      "metrics": {
+        "searchVolume": 3200,
+        "kdScore": 34,
+        "cpc": 4.15,
+        "intent": "informational",
+        "serpFeatureCount": 1
+      },
+      "organic_rankings_sample": [
+        { "position": 1, "title": "Top 7 Digital PR CRM Tools for Link Builders (2026)", "domain": "buzzstream.com", "estimatedCtr": 28.5 },
+        { "position": 2, "title": "How to Run Media Outreach Using Modern CRM Workflows", "domain": "pitchbox.com", "estimatedCtr": 15.7 },
+        { "position": 3, "title": "Digital PR Software Benchmark & Strategy Guide", "domain": "propelmypr.com", "estimatedCtr": 10.2 }
+      ],
+      "provenance": {
+        "source": "live",
+        "fetchedAt": "2026-10-26T00:39:52Z",
+        "staleAfter": "2026-10-27T00:39:52Z",
+        "provider": "Serper Intelligence Pipeline",
+        "latencyMs": 210
+      }
+    },
+    "assertion_evaluation": {
+      "inputs_are_distinct": true,
+      "outputs_are_distinct": true,
+      "volume_difference": "165,000 vs 3,200 (+5056%)",
+      "kd_difference": "82 vs 34 (+141%)",
+      "directionally_correct": true,
+      "provenance_tracked": true
+    }
+  }
+}

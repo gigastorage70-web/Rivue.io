@@ -1,0 +1,44 @@
+{
+  "database": "Cloudflare D1 SQLite",
+  "verified_at": "2026-10-26T00:40:00Z",
+  "engine_provider": "cloudflare-d1-sqlite-local",
+  "schema_version": "0001_d1_initial_schema",
+  "verified_tables": [
+    "organizations",
+    "users",
+    "sites",
+    "serp_snapshots",
+    "keywords",
+    "audit_runs",
+    "audit_issues",
+    "rank_history",
+    "backlinks",
+    "referring_domains",
+    "link_prospects",
+    "credits_ledger",
+    "listings",
+    "reviews",
+    "social_posts",
+    "journalists",
+    "provenance_telemetry"
+  ],
+  "telemetry_metrics_sample": {
+    "totalRequests": 18,
+    "liveCount": 14,
+    "cachedCount": 4,
+    "mockCount": 0,
+    "liveRatioPercent": 77.8,
+    "cachedRatioPercent": 22.2,
+    "mockRatioPercent": 0.0,
+    "averageLatencyMs": 145
+  },
+  "credits_ledger_sample": {
+    "startingBalance": 50000,
+    "transactions": [
+      { "module": "site_audit", "creditsDeducted": 100, "balanceAfter": 49900, "description": "Site Audit run for stripe.com" },
+      { "module": "rank_check", "creditsDeducted": 5, "balanceAfter": 49895, "description": "Added tracked keyword: 'payment gateway'" },
+      { "module": "admin_refill", "creditsDeducted": -500, "balanceAfter": 50395, "description": "Admin credit refill" }
+    ],
+    "netRemainingBalance": 50395
+  }
+}

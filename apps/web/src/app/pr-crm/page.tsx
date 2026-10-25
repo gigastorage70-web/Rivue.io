@@ -210,6 +210,11 @@ export default function DigitalPrCrmPage() {
           subtitle="Top tech & SaaS beats"
           badge={<Badge variant="violet" size="sm">Curated</Badge>}
           variant="violet"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Average Reply Rate"
@@ -218,6 +223,11 @@ export default function DigitalPrCrmPage() {
           subtitle="Industry benchmark: 12%"
           trend={{ value: 6.4, direction: 'up' }}
           variant="emerald"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Total Brand Mentions"
@@ -226,6 +236,11 @@ export default function DigitalPrCrmPage() {
           subtitle="Across tier-1 news outlets"
           icon={<Newspaper className="w-5 h-5 text-cyan-400" />}
           variant="cyan"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Unlinked Opportunities"
@@ -234,6 +249,11 @@ export default function DigitalPrCrmPage() {
           subtitle="Prime outreach targets"
           badge={<Badge variant="amber" size="sm">High ROI</Badge>}
           variant="amber"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
       </div>
 

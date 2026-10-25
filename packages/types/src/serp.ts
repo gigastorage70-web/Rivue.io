@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DataProvenanceSchema } from './provenance';
 
 export const OrganicResultSchema = z.object({
   position: z.number(),
@@ -91,6 +92,7 @@ export const SerpSnapshotSchema = z.object({
     serpVolatilityIndex: z.number(),
     topCompetitors: z.array(z.string()),
   }).optional(),
+  provenance: DataProvenanceSchema.optional(),
 });
 
 export type SerpSnapshot = z.infer<typeof SerpSnapshotSchema>;

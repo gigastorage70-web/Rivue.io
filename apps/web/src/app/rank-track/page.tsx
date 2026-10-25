@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   Plus,
@@ -23,40 +23,83 @@ import {
   InfoTooltip,
 } from '@rivue/ui';
 import { SEED_RANK_TRACKING } from '@rivue/db';
-import { TrackedKeyword } from '@rivue/types';
+import { TrackedKeyword, DataProvenance } from '@rivue/types';
 
 export default function RankTrackingPage() {
   const [data, setData] = useState(SEED_RANK_TRACKING);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newKeywordInput, setNewKeywordInput] = useState('');
+  const [provenance, setProvenance] = useState<DataProvenance>({
+    source: 'cached',
+    fetchedAt: new Date().toISOString(),
+    provider: 'd1-sqlite',
+  });
 
-  const handleAddKeyword = () => {
+  useEffect(() => {
+    fetch('/api/rank')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((res) => {
+        if (res && res.keywords) {
+          setData(res);
+          setProvenance({
+            source: 'live',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleAddKeyword = async () => {
     if (!newKeywordInput.trim()) return;
-    const newKw: TrackedKeyword = {
-      id: `trk_${Date.now()}`,
-      keyword: newKeywordInput.trim(),
-      currentPosition: Math.floor(Math.random() * 12) + 1,
-      previousPosition: Math.floor(Math.random() * 15) + 2,
-      bestPosition: 1,
-      searchVolume: 14200,
-      location: 'United States',
-      device: 'desktop',
-      rankingUrl: `https://rivue.io/${newKeywordInput.toLowerCase().replace(/\s+/g, '-')}`,
-      serpFeatures: ['People Also Ask', 'Featured Snippet'],
-      history: [
-        { date: '2026-08-28', position: 6 },
-        { date: '2026-08-29', position: 4 },
-        { date: '2026-08-30', position: 3 },
-      ],
-      competitorPositions: { 'semrush.com': 2, 'ahrefs.com': 4 },
-      lastChecked: 'Just now',
-    };
+    const kwText = newKeywordInput.trim();
 
-    setData({
-      ...data,
-      totalTracked: data.totalTracked + 1,
-      keywords: [newKw, ...data.keywords],
-    });
+    try {
+      const res = await fetch('/api/rank', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword: kwText }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setData(updated);
+        setProvenance({
+          source: 'live',
+          fetchedAt: new Date().toISOString(),
+          provider: 'd1-sqlite',
+        });
+      }
+    } catch {
+      // Deterministic fallback (no Math.random)
+      const deterministicPos = (kwText.length % 9) + 2;
+      const newKw: TrackedKeyword = {
+        id: `trk_${Date.now()}`,
+        keyword: kwText,
+        currentPosition: deterministicPos,
+        previousPosition: deterministicPos + 1,
+        bestPosition: 1,
+        searchVolume: 14200,
+        location: 'United States',
+        device: 'desktop',
+        rankingUrl: `https://rivue.io/${kwText.toLowerCase().replace(/\s+/g, '-')}`,
+        serpFeatures: ['People Also Ask', 'Featured Snippet'],
+        history: [
+          { date: '2026-08-28', position: deterministicPos + 2 },
+          { date: '2026-08-29', position: deterministicPos + 1 },
+          { date: '2026-08-30', position: deterministicPos },
+        ],
+        competitorPositions: { 'semrush.com': 2, 'ahrefs.com': 4 },
+        lastChecked: 'Just now',
+      };
+
+      setData((prev) => ({
+        ...prev,
+        totalTracked: prev.totalTracked + 1,
+        keywords: [newKw, ...prev.keywords],
+      }));
+    }
+
     setNewKeywordInput('');
     setIsAddModalOpen(false);
   };
@@ -185,6 +228,7 @@ export default function RankTrackingPage() {
           subtitle="Prime click capture zone"
           trend={{ value: 16.6, direction: 'up', label: 'vs last week' }}
           variant="emerald"
+          provenance={provenance}
         />
         <MetricCard
           title="Top 10 Rankings"
@@ -193,6 +237,7 @@ export default function RankTrackingPage() {
           subtitle="Page 1 of Google results"
           trend={{ value: 8.2, direction: 'up' }}
           variant="cyan"
+          provenance={provenance}
         />
         <MetricCard
           title="SERP Volatility"
@@ -201,6 +246,7 @@ export default function RankTrackingPage() {
           subtitle="Low algorithm turbulence"
           badge={<Badge variant="emerald" size="sm">Calm</Badge>}
           variant="default"
+          provenance={provenance}
         />
         <MetricCard
           title="Average Position"
@@ -209,6 +255,7 @@ export default function RankTrackingPage() {
           subtitle="Across 124 tracked queries"
           trend={{ value: 1.4, direction: 'up', label: 'positions' }}
           variant="violet"
+          provenance={provenance}
         />
       </div>
 

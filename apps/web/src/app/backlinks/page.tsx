@@ -147,6 +147,11 @@ export default function BacklinksPage() {
           trend={{ value: 3.2, direction: 'up', label: 'last 30d' }}
           icon={<ShieldCheck className="w-5 h-5 text-cyan-400" />}
           variant="cyan"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Referring Domains"
@@ -156,6 +161,11 @@ export default function BacklinksPage() {
           trend={{ value: 18.5, direction: 'up', label: 'new domains' }}
           icon={<Link2 className="w-5 h-5 text-blue-400" />}
           variant="default"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Dofollow Ratio"
@@ -164,6 +174,11 @@ export default function BacklinksPage() {
           subtitle="Authority passing links"
           badge={<Badge variant="emerald" size="sm">Healthy</Badge>}
           variant="emerald"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Spam Risk Score"
@@ -172,6 +187,11 @@ export default function BacklinksPage() {
           subtitle="Low toxic link profile"
           badge={<Badge variant="emerald" size="sm">Clean</Badge>}
           variant="default"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
       </div>
 

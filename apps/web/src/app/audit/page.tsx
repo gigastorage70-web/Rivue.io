@@ -19,7 +19,7 @@ import { Card, Badge, Button, ProgressRing, Table, InfoTooltip, MetricCard } fro
 import { useRivue } from '../../lib/state';
 
 export default function SiteAuditPage() {
-  const { audit, runLiveAudit, isAuditing, targetDomain, setTargetDomain } = useRivue();
+  const { audit, runLiveAudit, isAuditing, auditError, clearAuditError, targetDomain, setTargetDomain } = useRivue();
   const [crawlUrlInput, setCrawlUrlInput] = useState(`https://${targetDomain}`);
   const [expandedIssue, setExpandedIssue] = useState<string | null>(audit.issues[0]?.id || null);
   const [activeSeverityTab, setActiveSeverityTab] = useState<'all' | 'error' | 'warning' | 'notice'>('all');
@@ -70,6 +70,35 @@ export default function SiteAuditPage() {
         </form>
       </div>
 
+      {/* Explicit Error State Banner (Live Data Standard §4 & §7) */}
+      {auditError && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-rose-950/60 border border-rose-800/80 shadow-lg flex items-start justify-between gap-4 animate-in fade-in">
+          <div className="flex items-start gap-3">
+            <AlertOctagon className="w-5 h-5 text-rose-400 mt-0.5 shrink-0" />
+            <div>
+              <h3 className="text-sm font-bold text-rose-200">Live Audit Pipeline Failed</h3>
+              <p className="text-xs text-rose-300/90 mt-0.5 leading-relaxed font-mono">
+                {auditError}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-2">
+                Per the Live-Data Standard, Rivue does not silently fake results when a crawl fails. Please check that the URL is live and accessible.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" variant="secondary" onClick={() => runLiveAudit(crawlUrlInput)}>
+              Retry
+            </Button>
+            <button
+              onClick={clearAuditError}
+              className="text-xs text-slate-400 hover:text-white px-2 py-1"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <MetricCard
@@ -78,6 +107,7 @@ export default function SiteAuditPage() {
           value={`${audit.healthScore}/100`}
           subtitle={audit.healthScore >= 80 ? 'Good standing' : 'Action required'}
           trend={{ value: 4, direction: 'up', label: 'vs last scan' }}
+          provenance={audit.provenance}
           icon={<Activity className="w-5 h-5 text-emerald-400" />}
           variant="emerald"
         />
@@ -86,6 +116,7 @@ export default function SiteAuditPage() {
           termKey="site_health"
           value={audit.errorsCount}
           subtitle="4xx/5xx & missing meta tags"
+          provenance={audit.provenance}
           icon={<AlertOctagon className="w-5 h-5 text-rose-400" />}
           variant="rose"
         />
@@ -94,6 +125,7 @@ export default function SiteAuditPage() {
           termKey="site_health"
           value={audit.warningsCount}
           subtitle="Missing alt tags & titles"
+          provenance={audit.provenance}
           icon={<AlertTriangle className="w-5 h-5 text-amber-400" />}
           variant="amber"
         />
@@ -102,6 +134,7 @@ export default function SiteAuditPage() {
           termKey="site_health"
           value={audit.passedChecksCount}
           subtitle="Compliant technical signals"
+          provenance={audit.provenance}
           icon={<CheckCircle2 className="w-5 h-5 text-cyan-400" />}
           variant="cyan"
         />

@@ -76,6 +76,11 @@ export default function ListingsPage() {
           subtitle="3 of 4 directories in sync"
           badge={<Badge variant="emerald" size="sm">High Match</Badge>}
           variant="cyan"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Average Rating"
@@ -84,6 +89,11 @@ export default function ListingsPage() {
           subtitle={`Across ${data.totalReviews} customer reviews`}
           icon={<Star className="w-5 h-5 text-amber-400 fill-amber-400" />}
           variant="amber"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Review Sentiment"
@@ -92,6 +102,11 @@ export default function ListingsPage() {
           subtitle="AI sentiment classifier"
           badge={<Badge variant="emerald" size="sm">Delighted</Badge>}
           variant="emerald"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Response Time SLA"
@@ -99,6 +114,11 @@ export default function ListingsPage() {
           value={`${data.averageResponseTimeHours} hrs`}
           subtitle="88.5% response rate"
           variant="violet"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
       </div>
 

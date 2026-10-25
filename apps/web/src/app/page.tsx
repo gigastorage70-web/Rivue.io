@@ -68,6 +68,7 @@ export default function UnifiedDashboardPage() {
           trend={{ value: 6, direction: 'up', label: 'vs previous' }}
           icon={<Activity className="w-5 h-5 text-emerald-400" />}
           variant="emerald"
+          provenance={audit.provenance}
         />
         <MetricCard
           title="Domain Rating (DR)"
@@ -77,6 +78,11 @@ export default function UnifiedDashboardPage() {
           trend={{ value: 3.4, direction: 'up', label: 'last 30d' }}
           icon={<ShieldCheck className="w-5 h-5 text-cyan-400" />}
           variant="cyan"
+          provenance={{
+            source: 'cached',
+            fetchedAt: audit.completedAt || audit.startedAt || new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Tracked Keywords"
@@ -86,6 +92,11 @@ export default function UnifiedDashboardPage() {
           trend={{ value: 12, direction: 'up', label: 'improved' }}
           icon={<TrendingUp className="w-5 h-5 text-violet-400" />}
           variant="violet"
+          provenance={{
+            source: 'cached',
+            fetchedAt: audit.completedAt || audit.startedAt || new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Referring Domains"
@@ -95,6 +106,11 @@ export default function UnifiedDashboardPage() {
           trend={{ value: 18.5, direction: 'up', label: 'velocity' }}
           icon={<Link2 className="w-5 h-5 text-blue-400" />}
           variant="default"
+          provenance={{
+            source: 'cached',
+            fetchedAt: audit.completedAt || audit.startedAt || new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
       </div>
 

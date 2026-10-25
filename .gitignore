@@ -17,6 +17,13 @@ build/
 .env*.local
 .env
 
+# Cloudflare D1 local database
+.d1/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.tsbuildinfo
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

@@ -9,3 +9,4 @@ export * from './social';
 export * from './pr';
 export * from './credits';
 export * from './glossary';
+export * from './provenance';

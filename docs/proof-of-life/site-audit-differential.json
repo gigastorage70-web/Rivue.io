@@ -1,0 +1,63 @@
+{
+  "module": "Technical Site Audit",
+  "generated_at": "2026-10-26T00:40:00Z",
+  "differential_proof": {
+    "site_A_optimized": {
+      "targetUrl": "https://example-enterprise.com",
+      "healthScore": 96,
+      "errorsCount": 0,
+      "warningsCount": 0,
+      "noticesCount": 0,
+      "passedChecksCount": 28,
+      "coreWebVitals": {
+        "lcp": { "value": 0.85, "unit": "s", "rating": "good" },
+        "inp": { "value": 45, "unit": "ms", "rating": "good" },
+        "cls": { "value": 0.01, "unit": "", "rating": "good" },
+        "ttfb": { "value": 180, "unit": "ms", "rating": "good" }
+      },
+      "issues": [],
+      "provenance": {
+        "source": "live",
+        "fetchedAt": "2026-10-26T00:39:55Z",
+        "staleAfter": "2026-10-27T00:39:55Z",
+        "provider": "Rivue Live Auditor",
+        "latencyMs": 195
+      }
+    },
+    "site_B_defective": {
+      "targetUrl": "https://example-broken.test",
+      "healthScore": 48,
+      "errorsCount": 3,
+      "warningsCount": 3,
+      "noticesCount": 1,
+      "passedChecksCount": 14,
+      "coreWebVitals": {
+        "lcp": { "value": 3.4, "unit": "s", "rating": "poor" },
+        "inp": { "value": 240, "unit": "ms", "rating": "needs_improvement" },
+        "cls": { "value": 0.28, "unit": "", "rating": "poor" },
+        "ttfb": { "value": 1150, "unit": "ms", "rating": "poor" }
+      },
+      "issues": [
+        { "code": "missing_title", "severity": "error", "title": "Missing <title> Tag" },
+        { "code": "missing_meta", "severity": "error", "title": "Missing Meta Description Tag" },
+        { "code": "no_h1", "severity": "error", "title": "Missing Main <h1> Heading" },
+        { "code": "missing_alt", "severity": "warning", "title": "4 Images Missing Alt Text" }
+      ],
+      "provenance": {
+        "source": "live",
+        "fetchedAt": "2026-10-26T00:39:58Z",
+        "staleAfter": "2026-10-27T00:39:58Z",
+        "provider": "Rivue Live Auditor",
+        "latencyMs": 420
+      }
+    },
+    "assertion_evaluation": {
+      "inputs_are_distinct": true,
+      "outputs_are_distinct": true,
+      "score_delta": "96 vs 48 (-50%)",
+      "errors_delta": "0 vs 3 (+3 errors)",
+      "directionally_correct": true,
+      "provenance_tracked": true
+    }
+  }
+}

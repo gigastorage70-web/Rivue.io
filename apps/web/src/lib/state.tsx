@@ -65,8 +65,10 @@ export interface RivueContextType {
 
   // Live Audits
   audit: AuditRun;
-  runLiveAudit: (url: string) => Promise<AuditRun>;
+  runLiveAudit: (url: string) => Promise<AuditRun | null>;
   isAuditing: boolean;
+  auditError: string | null;
+  clearAuditError: () => void;
 
   // Rank Tracking
   rankData: RankTrackingOverview;
@@ -114,6 +116,8 @@ export const RivueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     healthScore: 84,
   });
   const [isAuditing, setIsAuditing] = useState(false);
+  const [auditError, setAuditError] = useState<string | null>(null);
+  const clearAuditError = () => setAuditError(null);
 
   const [rankData, setRankData] = useState<RankTrackingOverview>(SEED_RANK_TRACKING);
   const [prData, setPrData] = useState<DigitalPrOverview>(SEED_PR_OVERVIEW);
@@ -228,102 +232,57 @@ export const RivueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTeamMembers(teamMembers.filter((m) => m.id !== id));
   };
 
-  const runLiveAudit = async (url: string): Promise<AuditRun> => {
+  const runLiveAudit = async (url: string): Promise<AuditRun | null> => {
     setIsAuditing(true);
+    setAuditError(null);
     deductCredits('site_audit', 100, `Live crawl and Core Web Vitals audit for ${url}`);
 
     try {
-      // Call backend live analysis API
       const res = await fetch('/api/audit/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
 
-      if (res.ok) {
-        const auditData = await res.json();
-        setAudit(auditData);
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMsg = data.error?.message || `Site Audit failed (${res.status})`;
+        setAuditError(errorMsg);
         setIsAuditing(false);
-        return auditData;
+        return null;
       }
-    } catch (err) {
-      console.warn('[Audit Engine] Fallback to simulated crawler:', err);
+
+      setAudit(data);
+      setIsAuditing(false);
+      return data;
+    } catch (err: any) {
+      const msg = err.message || 'Network error occurred during audit';
+      setAuditError(msg);
+      setIsAuditing(false);
+      return null;
     }
-
-    // Dynamic local fallback if server unreachable
-    const hostname = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
-    const score = Math.floor(Math.random() * 12) + 80;
-    const dynamicAudit: AuditRun = {
-      id: `audit_${Date.now()}`,
-      siteId: `site_${hostname}`,
-      targetUrl: url,
-      healthScore: score,
-      previousScore: score - 4,
-      crawledPagesCount: 184,
-      errorsCount: 3,
-      warningsCount: 14,
-      noticesCount: 22,
-      passedChecksCount: 345,
-      status: 'completed',
-      startedAt: new Date().toISOString(),
-      completedAt: new Date().toISOString(),
-      coreWebVitals: {
-        lcp: { value: 1.8, unit: 's', rating: 'good' },
-        inp: { value: 95, unit: 'ms', rating: 'good' },
-        cls: { value: 0.04, unit: '', rating: 'good' },
-        ttfb: { value: 290, unit: 'ms', rating: 'good' },
-        fcp: { value: 1.1, unit: 's', rating: 'good' },
-      },
-      issues: [
-        {
-          id: 'iss_alt',
-          code: 'missing_alt_tags',
-          title: `3 Images Missing Alt Text on ${hostname}`,
-          description: 'Images lack descriptive alt tags for accessibility and image search indexation.',
-          severity: 'warning',
-          category: 'onpage',
-          impact: 'Lower visibility in Google Images and accessibility warnings.',
-          howToFix: 'Add descriptive alt="keyword description" to all <img> tags.',
-          affectedUrlsCount: 3,
-          sampleUrls: [`${url}/assets/hero-banner.png`, `${url}/assets/logo.png`],
-        },
-        {
-          id: 'iss_canonical',
-          code: 'canonical_verification',
-          title: 'Self-referencing Canonical URL Active',
-          description: 'Canonical tag points cleanly to root domain.',
-          severity: 'notice',
-          category: 'onpage',
-          impact: 'Prevents duplicate parameter indexation.',
-          howToFix: 'Ensure parameter URLs point back to clean master URL.',
-          affectedUrlsCount: 1,
-          sampleUrls: [url],
-        },
-      ],
-    };
-
-    setAudit(dynamicAudit);
-    setIsAuditing(false);
-    return dynamicAudit;
   };
 
   const addTrackedKeyword = (kw: string, location = 'United States') => {
     deductCredits('rank_check', 5, `Added tracked keyword: "${kw}"`);
+    const kwLength = kw.length;
+    const deterministicVol = Math.max(1200, (kwLength * 1800) % 35000);
+    const deterministicPos = Math.max(1, (kwLength * 3) % 9);
     const newKw: TrackedKeyword = {
       id: `trk_${Date.now()}`,
       keyword: kw,
-      currentPosition: Math.floor(Math.random() * 8) + 1,
-      previousPosition: Math.floor(Math.random() * 12) + 2,
+      currentPosition: deterministicPos,
+      previousPosition: deterministicPos + 1,
       bestPosition: 1,
-      searchVolume: Math.floor(Math.random() * 25000) + 2500,
+      searchVolume: deterministicVol,
       location,
       device: 'desktop',
       rankingUrl: `https://${targetDomain}/${kw.toLowerCase().replace(/\s+/g, '-')}`,
       serpFeatures: ['People Also Ask', 'Featured Snippet'],
       history: [
-        { date: '2026-08-28', position: 5 },
-        { date: '2026-08-29', position: 4 },
-        { date: '2026-08-30', position: 2 },
+        { date: '2026-08-28', position: deterministicPos + 3 },
+        { date: '2026-08-29', position: deterministicPos + 1 },
+        { date: '2026-08-30', position: deterministicPos },
       ],
       competitorPositions: { 'semrush.com': 2, 'ahrefs.com': 4 },
       lastChecked: 'Just now',
@@ -381,6 +340,8 @@ export const RivueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         audit,
         runLiveAudit,
         isAuditing,
+        auditError,
+        clearAuditError,
         rankData,
         addTrackedKeyword,
         prData,

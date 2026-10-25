@@ -8,3 +8,4 @@ export * from './components/Card';
 export * from './components/Table';
 export * from './components/Tabs';
 export * from './components/Modal';
+export * from './components/ProvenanceBadge';

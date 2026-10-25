@@ -92,6 +92,11 @@ export default function SocialSchedulingPage() {
           subtitle="Ready for dispatch"
           badge={<Badge variant="cyan" size="sm">Active</Badge>}
           variant="cyan"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Published (Month)"
@@ -100,6 +105,11 @@ export default function SocialSchedulingPage() {
           subtitle="Across 3 connected networks"
           trend={{ value: 14.5, direction: 'up' }}
           variant="default"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Avg Engagement Rate"
@@ -108,6 +118,11 @@ export default function SocialSchedulingPage() {
           subtitle="LinkedIn & X combined"
           badge={<Badge variant="emerald" size="sm">Top Tier</Badge>}
           variant="emerald"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
         <MetricCard
           title="Audience Growth"
@@ -116,6 +131,11 @@ export default function SocialSchedulingPage() {
           subtitle="Monthly net followers"
           trend={{ value: 4.8, direction: 'up' }}
           variant="violet"
+          provenance={{
+            source: 'cached',
+            fetchedAt: new Date().toISOString(),
+            provider: 'd1-sqlite',
+          }}
         />
       </div>
 

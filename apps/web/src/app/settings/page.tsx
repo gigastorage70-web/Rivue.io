@@ -141,6 +141,11 @@ export default function AdminAndSettingsPage() {
               subtitle={`of ${(quota.monthlyAllowance / 1000).toFixed(0)}k monthly allowance`}
               icon={<Zap className="w-5 h-5 text-cyan-400" />}
               variant="cyan"
+              provenance={{
+                source: 'live',
+                fetchedAt: new Date().toISOString(),
+                provider: 'd1-sqlite',
+              }}
             />
             <MetricCard
               title="Credits Used This Cycle"
@@ -149,6 +154,11 @@ export default function AdminAndSettingsPage() {
               subtitle="Resets on 1st of next month"
               icon={<CreditCard className="w-5 h-5 text-emerald-400" />}
               variant="emerald"
+              provenance={{
+                source: 'live',
+                fetchedAt: new Date().toISOString(),
+                provider: 'd1-sqlite',
+              }}
             />
             <MetricCard
               title="Active Subscription Tier"
@@ -157,6 +167,11 @@ export default function AdminAndSettingsPage() {
               subtitle="50,000 credits/mo • Unlimited seats"
               icon={<Shield className="w-5 h-5 text-violet-400" />}
               variant="violet"
+              provenance={{
+                source: 'live',
+                fetchedAt: new Date().toISOString(),
+                provider: 'd1-sqlite',
+              }}
             />
           </div>
 

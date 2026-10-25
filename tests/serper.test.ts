@@ -8,7 +8,7 @@ import {
   computeSerpVolatility,
   computeContentGapScore,
 } from '../packages/serper-client/src/derived';
-import { SerperClient } from '../packages/serper-client/src/client';
+import { SerperClient, MockDataProhibitedError } from '../packages/serper-client/src/client';
 
 test('computeEstimatedCtr follows position-weighted CTR decay', () => {
   const pos1Ctr = computeEstimatedCtr(1);
@@ -63,12 +63,30 @@ test('computeContentGapScore balances word count and heading overlap', () => {
   assert.ok(scoreLow < 30);
 });
 
-test('SerperClient fetches high-fidelity mock fixture when offline', async () => {
-  const client = new SerperClient();
+test('Anti-Mock Contract (§4): SerperClient throws loud error when mock is not explicitly enabled', async () => {
+  const client = new SerperClient({ useMockData: false });
+  await assert.rejects(
+    async () => {
+      await client.search({ q: 'unauthorized-mock-test' });
+    },
+    (err: any) => {
+      assert.ok(err instanceof MockDataProhibitedError);
+      return true;
+    }
+  );
+});
+
+test('Data Provenance (§5): SerperClient tags responses with source and inspectable timestamp', async () => {
+  const client = new SerperClient({ useMockData: true });
   const result = await client.search({ q: 'crm software' });
 
   assert.strictEqual(result.query, 'crm software');
-  assert.ok(result.organic.length > 0);
-  assert.ok(result.derived !== undefined);
-  assert.ok(result.derived.serpFeatureCount >= 1);
+  assert.ok(result.provenance !== undefined);
+  assert.strictEqual(result.provenance?.source, 'mock');
+  assert.ok(result.provenance?.fetchedAt);
+  assert.ok(result.provenance?.staleAfter);
+
+  // Subsequent call hits cache and is tagged as cached
+  const cachedResult = await client.search({ q: 'crm software' });
+  assert.strictEqual(cachedResult.provenance?.source, 'cached');
 });

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DataProvenanceSchema } from './provenance';
 
 export const IssueSeveritySchema = z.enum(['error', 'warning', 'notice']);
 export type IssueSeverity = z.infer<typeof IssueSeveritySchema>;
@@ -79,6 +80,7 @@ export const AuditRunSchema = z.object({
   coreWebVitals: CoreWebVitalsSchema,
   issues: z.array(AuditIssueSchema),
   crawledPages: z.array(PageAuditDetailSchema).optional(),
+  provenance: DataProvenanceSchema.optional(),
 });
 
 export type AuditRun = z.infer<typeof AuditRunSchema>;

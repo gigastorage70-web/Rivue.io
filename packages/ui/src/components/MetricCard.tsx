@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { InfoTooltip } from './InfoTooltip';
+import { ProvenanceBadge } from './ProvenanceBadge';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { DataProvenance } from '@rivue/types';
 
 export interface MetricCardProps {
   title: string;
@@ -14,6 +16,7 @@ export interface MetricCardProps {
     direction: 'up' | 'down' | 'neutral';
     label?: string;
   };
+  provenance?: DataProvenance;
   icon?: React.ReactNode;
   badge?: React.ReactNode;
   variant?: 'default' | 'cyan' | 'violet' | 'emerald' | 'amber' | 'rose';
@@ -26,6 +29,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   value,
   subtitle,
   trend,
+  provenance,
   icon,
   badge,
   variant = 'default',
@@ -52,8 +56,17 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           </span>
           {termKey && <InfoTooltip term={termKey} />}
         </div>
-        {icon && <div className="text-slate-400 group-hover:text-cyan-400 transition-colors">{icon}</div>}
-        {badge}
+        <div className="flex items-center gap-2">
+          {provenance && (
+            <ProvenanceBadge
+              source={provenance.source}
+              fetchedAt={provenance.fetchedAt}
+              staleAfter={provenance.staleAfter}
+            />
+          )}
+          {badge}
+          {icon && <div className="text-slate-400 group-hover:text-cyan-400 transition-colors">{icon}</div>}
+        </div>
       </div>
 
       {/* Main Value */}

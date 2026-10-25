@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DataProvenanceSchema } from './provenance';
 
 export const SearchIntentSchema = z.enum(['informational', 'commercial', 'transactional', 'navigational']);
 export type SearchIntent = z.infer<typeof SearchIntentSchema>;
@@ -18,6 +19,7 @@ export const KeywordMetricSchema = z.object({
   })),
   history: z.array(z.number()).optional(),
   lastUpdated: z.string(),
+  provenance: DataProvenanceSchema.optional(),
 });
 
 export type KeywordMetric = z.infer<typeof KeywordMetricSchema>;
@@ -29,6 +31,7 @@ export const KeywordSuggestionSchema = z.object({
   cpc: z.number(),
   intent: SearchIntentSchema,
   trendType: z.enum(['rising', 'stable', 'declining']).optional(),
+  provenance: DataProvenanceSchema.optional(),
 });
 
 export type KeywordSuggestion = z.infer<typeof KeywordSuggestionSchema>;
@@ -39,6 +42,8 @@ export const KeywordExplorerResultSchema = z.object({
   suggestions: z.array(KeywordSuggestionSchema),
   questions: z.array(KeywordSuggestionSchema),
   serpSnapshot: z.any().optional(),
+  provenance: DataProvenanceSchema.optional(),
 });
 
 export type KeywordExplorerResult = z.infer<typeof KeywordExplorerResultSchema>;
+
